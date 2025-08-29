@@ -35,8 +35,11 @@ int main() {
                 if (key.empty()){ std::cout<<"usage: DEL <key>\n"; continue; }
                 std::cout << (db.del(key) ? "OK" : "NOT FOUND") << "\n";
             } else if (cmd=="COMPACT") {
-                db.compact();
-                std::cout << "COMPACTED\n";
+                  if (auto ec = db.compact(); ec) {
+                    std::cout << "ERROR: " << ec.message() << "\n";
+                } else {
+                    std::cout << "COMPACTED\n";
+                }
             } else if (cmd=="EXIT") {
                 break;
             } else {

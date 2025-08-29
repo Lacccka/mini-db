@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include <filesystem>
+#include <system_error>
 #include <shared_mutex>
 #include <atomic>
 #include <mutex>
@@ -25,7 +26,7 @@ public:
     bool del(std::string_view key);
     std::optional<std::string> get(std::string_view key) const;
 
-    void compact();
+    std::error_code compact();
     void flush();
 
 private:

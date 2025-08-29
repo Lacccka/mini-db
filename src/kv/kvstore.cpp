@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <format>
 #include <fstream>
+#include <iostream>
 
 static std::filesystem::path hint_path_for(const std::filesystem::path& seg_path) {
     auto p = seg_path;
@@ -190,7 +191,7 @@ std::optional<std::string> KVStore::get(std::string_view key) const {
     return seg.read_value(it->second.loc);
 }
 
-void KVStore::compact() {
+std::error_code KVStore::compact() {
     std::unique_lock lk(mu_);
 
     uint32_t new_id = next_segment_id_();
@@ -218,9 +219,20 @@ void KVStore::compact() {
 
     std::vector<uint32_t> to_remove;
     for (auto id : segment_ids_) if (id != new_id) to_remove.push_back(id);
+    std::error_code ec;
     for (auto id : to_remove) {
-        try { std::filesystem::remove(seg_path_(id)); } catch(...) {}
-        try { std::filesystem::remove(hint_path_for(seg_path_(id))); } catch(...) {}
+        auto spath = seg_path_(id);
+        std::filesystem::remove(spath, ec);
+        if (ec) {
+            std::cerr << "Failed to remove segment " << spath << ": " << ec.message() << '\n';
+            return ec;
+        }
+        auto hpath = hint_path_for(spath);
+        std::filesystem::remove(hpath, ec);
+        if (ec) {
+            std::cerr << "Failed to remove hint file " << hpath << ": " << ec.message() << '\n';
+            return ec;
+        }
     }
     segment_ids_.clear();
     segment_ids_.push_back(new_id);
@@ -231,4 +243,5 @@ void KVStore::compact() {
         std::scoped_lock g(cache_mu_);
         ro_cache_.clear();
     }
+    return {};
 }
