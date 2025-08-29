@@ -33,7 +33,8 @@ private:
     mutable std::shared_mutex mu_;
 
     struct Meta { Location loc; };
-    std::unordered_map<std::string, Meta> index_;
+    std::unordered_map<std::string, Meta,
+        std::hash<std::string_view>, std::equal_to<>> index_;
 
     std::vector<uint32_t> segment_ids_;
     std::unique_ptr<LogSegment> active_;

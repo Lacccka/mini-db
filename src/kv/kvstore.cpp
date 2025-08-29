@@ -157,17 +157,17 @@ void KVStore::set(std::string_view key, std::string_view value) {
     roll_segment_if_needed_();
     const uint64_t seq = seq_.fetch_add(1, std::memory_order_relaxed) + 1;
     auto loc = active_->append(OpCode::SET, seq, key, value, cfg_.fsync_each_write);
-    index_[std::string(key)] = Meta{ loc };
+    index_.insert_or_assign(key, Meta{ loc });
 }
 
 bool KVStore::del(std::string_view key) {
     std::unique_lock lk(mu_);
-    auto it = index_.find(std::string(key));
+    auto it = index_.find(key);
     if (it == index_.end() || it->second.loc.tombstone) return false;
     roll_segment_if_needed_();
     const uint64_t seq = seq_.fetch_add(1, std::memory_order_relaxed) + 1;
     auto loc = active_->append(OpCode::DEL, seq, key, {}, cfg_.fsync_each_write);
-    index_[std::string(key)] = Meta{ loc };
+    it->second = Meta{ loc };
     return true;
 }
 
@@ -184,7 +184,7 @@ LogSegment& KVStore::ro_segment_(uint32_t id) const {
 
 std::optional<std::string> KVStore::get(std::string_view key) const {
     std::shared_lock lk(mu_);
-    auto it = index_.find(std::string(key));
+    auto it = index_.find(key);
     if (it == index_.end() || it->second.loc.tombstone) return std::nullopt;
     auto& seg = ro_segment_(it->second.loc.file_id);
     return seg.read_value(it->second.loc);
