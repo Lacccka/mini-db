@@ -13,7 +13,7 @@ void WinFile::open_append(const std::filesystem::path& p) {
     handle_ = ::CreateFileW(
         to_w(p).c_str(),
         GENERIC_READ | FILE_APPEND_DATA | GENERIC_WRITE,
-        FILE_SHARE_READ,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
         nullptr,
         OPEN_ALWAYS,
         FILE_ATTRIBUTE_NORMAL,

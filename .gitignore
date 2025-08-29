@@ -37,5 +37,28 @@
 *.out
 *.app
 
-# debug information files
+# Debug information files
 *.dwo
+
+# ======================
+# CMake / Build system
+# ======================
+
+# CMake generated
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Typical build directories
+build/
+build-*/
+out/
+bin/
+
+# CLion / JetBrains IDEs
+cmake-build-*/
+.idea/
+
+# VSCode CMake Tools
+.vscode/
